@@ -37,6 +37,12 @@ final class TasksViewController: UITableViewController {
     private func getCurrentTask(for indexPath: IndexPath) -> Task {
         indexPath.section == 0 ? currentTasks[indexPath.row] : completedTasks[indexPath.row]
     }
+    
+    private func getRowIndex(tasks: Results<Task>, task: Task) -> Int {
+        tasks.firstIndex { tasker in
+            tasker.date == task.date
+        } ?? 0
+    }
 }
 
 extension TasksViewController {
@@ -114,9 +120,14 @@ extension TasksViewController {
         let doneAction = UIContextualAction(
             style: .normal,
             title: isFirstSection ? "Done" : "Undone"
-        ) { _, _, isDone in
-            StorageManager.shared.done(task, isComplete: isFirstSection)
-            tableView.moveRow(at: indexPath, to: IndexPath(row: 0, section: isFirstSection ? 1 : 0))
+        ) { [unowned self] _, _, isDone in
+            StorageManager.shared.done(task)
+            
+            var rowIndex = isFirstSection
+            ? getRowIndex(tasks: completedTasks, task: task)
+            : getRowIndex(tasks: currentTasks, task: task)
+            
+            tableView.moveRow(at: indexPath, to: IndexPath(row: rowIndex, section: isFirstSection ? 1 : 0))
             isDone(true)
         }
         

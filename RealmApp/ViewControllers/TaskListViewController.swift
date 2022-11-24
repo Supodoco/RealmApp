@@ -42,9 +42,9 @@ final class TaskListViewController: UITableViewController {
 
     @IBAction func sortingList(_ sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 {
-            taskLists = StorageManager.shared.realm.objects(TaskList.self).sorted(byKeyPath: "date")
+            taskLists = taskLists.sorted(byKeyPath: "date")
         } else {
-            taskLists = StorageManager.shared.realm.objects(TaskList.self).sorted(byKeyPath: "name")
+            taskLists = taskLists.sorted(byKeyPath: "name")
         }
         tableView.reloadData()
     }
@@ -102,9 +102,13 @@ extension TaskListViewController {
         let taskList = taskLists[indexPath.row]
         content.text = taskList.name
         let unDoneTasks = taskList.tasks.filter { !$0.isComplete }.count
-        let allDone = unDoneTasks == 0
-        content.secondaryText = allDone ? "\u{2713}" : "\(unDoneTasks)"
-        content.secondaryTextProperties.color = allDone ? .systemBlue : .darkGray
+        if unDoneTasks == 0, !taskList.tasks.isEmpty {
+            cell.accessoryType = UITableViewCell.AccessoryType.checkmark
+            content.secondaryText = ""
+        } else {
+            cell.accessoryType = UITableViewCell.AccessoryType.none
+            content.secondaryText = "\(unDoneTasks)"
+        }
         cell.contentConfiguration = content
         return cell
     }
